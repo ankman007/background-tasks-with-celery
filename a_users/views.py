@@ -108,6 +108,6 @@ def profile_delete_view(request):
         logout(request)
         user.delete()
         messages.success(request, 'Account deleted, what a pity')
-        return redirect('home')
+        return redirect('messageboard')
     
     return render(request, 'a_users/profile_delete.html')

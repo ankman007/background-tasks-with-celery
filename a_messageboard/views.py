@@ -4,6 +4,7 @@ from .models import MessageBoard
 from loguru import logger
 from .forms import MessageCreateForm
 from django.contrib import messages
+from .tasks import send_email
 
 @login_required
 def messageboard_view(request, board_id=1):
@@ -18,6 +19,10 @@ def messageboard_view(request, board_id=1):
             message.messageboard = messageboard
             message.save()
             messages.success(request, 'Your message has been posted.')
+            
+            subscribers = messageboard.subscribers.all()
+            for subscriber in subscribers.exclude(id=request.user.id):
+                send_email.delay(recipient_email=subscriber.email, message=message.body, author=request.user)
         else:
             messages.warning(request, 'You must subscribe to post a message on this board.')
         return redirect('messageboard')
