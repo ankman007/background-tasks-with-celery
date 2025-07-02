@@ -6,12 +6,19 @@ from .forms import MessageCreateForm
 from django.contrib import messages
 from .tasks import send_email
 
+def home(request):
+    messageboards = MessageBoard.objects.all()
+    context = {
+        "messageboards": messageboards,
+    }
+    return render(request, 'a_messageboard/index.html', context)
+    
 @login_required
 def messageboard_view(request, board_id=1):
     messageboard = get_object_or_404(MessageBoard, id=board_id)
     subscriber_count = messageboard.subscribers.count()
     form = MessageCreateForm(request.POST or None)
-    
+        
     if request.method == 'POST' and form.is_valid():
         if request.user in messageboard.subscribers.all():
             message = form.save(commit=False)
@@ -22,7 +29,7 @@ def messageboard_view(request, board_id=1):
             
             subscribers = messageboard.subscribers.all()
             for subscriber in subscribers.exclude(id=request.user.id):
-                send_email.delay(recipient_email=subscriber.email, message=message.body, author=request.user)
+                send_email.delay(recipient_email=subscriber.email, message=message.body, author=request.user.username)
         else:
             messages.warning(request, 'You must subscribe to post a message on this board.')
         return redirect('messageboard')
@@ -45,4 +52,3 @@ def subscribe(request, board_id=1):
         messageboard.subscribers.remove(request.user)
 
     return redirect('messageboard')
-

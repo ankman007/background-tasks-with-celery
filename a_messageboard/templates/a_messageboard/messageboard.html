@@ -1,0 +1,139 @@
+{% extends 'layouts/blank.html' %} {% block content %}
+
+<wrapper class="block h-[calc(100vh-80px)] pt-8 pb-4 px-4 max-w-7xl mx-auto">
+  <h1 class="mb-10">{{ messageboard.name }}</h1>
+ 
+  <div
+    id="messageboard"
+    class="grid md:grid-cols-3 lg:grid-cols-4 h-5/6 bg-white md:shadow-2xl md:rounded-2xl relative"
+  >
+    <div
+      id="messages"
+      class="flex flex-col md:col-span-2 lg:col-span-3 relative overflow-y-auto h-full"
+    >
+      <div class="flex flex-col gap-6 px-4 pt-8 md:px-10 grow">
+        {% for message in messageboard.messages.all reversed %}
+        <article class="flex gap-4 md:gap-6">
+          <a
+            class="contents"
+            href="{% url 'profile' message.author.username %}"
+          >
+            <img
+              class="w-10 h-10 md:w-14 md:h-14 object-cover rounded-full"
+              src="{{ message.author.profile.avatar }}"
+            />
+          </a>
+          <div class="bg-white p-4 w-full rounded-xl border-2 border-gray-200">
+            <div
+              class="flex flex-col md:flex-row justify-between text-xs pb-3 text-zinc-500"
+            >
+              <div>
+                <span class="font-bold text-base text-black mr-1"
+                  >{{ message.author.profile.name }}</span
+                >{{ message.author.profile.username }}
+              </div>
+              <div>{{ message.created }} ({{ message.created|timesince}})</div>
+            </div>
+            <div>{{ message.body }}</div>
+          </div>
+        </article>
+        {% endfor %}
+      </div>
+
+      <div
+        class="sticky bottom-0 z-10 p-4 md:p-10 flex flex-col bg-white rounded-2xl"
+      >
+        <div class="flex gap-4 md:gap-6">
+          <div class="contents">
+            <img
+              class="w-10 h-10 md:w-14 md:h-14 object-cover rounded-full"
+              src="{{ user.profile.avatar }}"
+            />
+          </div>
+          <div class="w-full rounded-xl">
+            <form method="POST" class="w-full">
+              {% csrf_token %} {{ form }}
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 hidden md:block">
+      <aside
+          class="md:col-span-1 bg-white overflow-y-auto"
+        >
+        <p class="mb-2">
+          <strong>Messageboard Owner:</strong> {{ messageboard.admin.username }}
+        </p>
+        <p class="mb-2"><strong>Created At:</strong> {{ messageboard.created_at }}</p>
+        <p class="mb-4">
+          <strong>Description:</strong> {{ messageboard.description }}
+        </p>
+      </aside>
+<hr class="border-black border-t-2 my-4">
+      <div class="mb-12">
+        {% if user in messageboard.subscribers.all %}
+        <h2 class="text-lg font-semibold mb-2 text-green-700">
+          You're subscribed to this message board.
+        </h2>
+        <p class="text-sm mb-4 text-gray-600">
+          You’ll receive email updates and newsletters related to this board.
+        </p>
+        <a
+          href="{% url 'subscribe' %}"
+          class="inline-block bg-gray-500 hover:bg-red-600 text-white font-semibold rounded-full py-2 px-5 transition"
+        >
+          Unsubscribe
+        </a>
+        {% else %}
+        <h2 class="text-lg font-semibold mb-2 text-gray-800">Stay updated!</h2>
+        <p class="text-sm mb-4 text-gray-600">
+          Subscribe to this message board to receive notifications and updates
+          directly in your inbox.
+        </p>
+        <a
+          href="{% url 'subscribe' %}"
+          class="inline-block bg-black hover:bg-emerald-500 text-white font-semibold rounded-full py-2 px-5 transition"
+        >
+          Subscribe
+        </a>
+        {% endif %}
+      </div>
+
+      <div class="rounded-2xl border border-gray-300 p-6 shadow-sm bg-white">
+        <h2 class="text-lg font-semibold text-gray-800 mb-4">
+          {{ subscriber_count }} subscriber{% if subscriber_count != 1 %}s{% endif %}
+        </h2>
+
+        <ul class="space-y-3">
+          {% for user in messageboard.subscribers.all %}
+          <li class="flex items-center gap-3">
+            <img
+              src="{{ user.profile.avatar|default:'https://via.placeholder.com/32' }}"
+              alt="{{ user.username }}'s avatar"
+              class="w-8 h-8 rounded-full object-cover border border-gray-300"
+            />
+            <span class="text-sm font-medium text-gray-700">
+              {{ user.username }}
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</wrapper>
+
+<script>
+  function scrollToBottom() {
+    const container = document.getElementById("messages");
+    container.scrollTop = container.scrollHeight;
+  }
+
+  window.onload = function () {
+    scrollToBottom();
+  };
+</script>
+
+{% endblock %}
