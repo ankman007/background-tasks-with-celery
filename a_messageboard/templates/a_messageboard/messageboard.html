@@ -12,6 +12,7 @@
       class="flex flex-col md:col-span-2 lg:col-span-3 relative overflow-y-auto h-full"
     >
       <div class="flex flex-col gap-6 px-4 pt-8 md:px-10 grow">
+        <div id="message-list" class="flex flex-col gap-6">
         {% for message in messageboard.messages.all reversed %}
         <article class="flex gap-4 md:gap-6">
           <a
@@ -38,6 +39,7 @@
           </div>
         </article>
         {% endfor %}
+        </div>
       </div>
 
       <div
@@ -51,8 +53,15 @@
             />
           </div>
           <div class="w-full rounded-xl">
-            <form method="POST" class="w-full">
-              {% csrf_token %} {{ form }}
+            <form 
+              method="POST" 
+              hx-post="{% url 'messageboard_detail' board_id=messageboard.id %}"
+              hx-target="#message-list"
+              hx-swap="innerHTML"
+              class="w-full"
+            >
+              {% csrf_token %} 
+              {{ form }}
             </form>
           </div>
         </div>
@@ -134,6 +143,18 @@
   window.onload = function () {
     scrollToBottom();
   };
+  document.body.addEventListener('htmx:afterSwap', function (e) {
+    if (e.target.id === "message-list") {
+      const messages = document.getElementById("messages");
+      messages.scrollTop = messages.scrollHeight;
+    }
+  });
+  document.body.addEventListener("htmx:afterRequest", function (evt) {
+    const form = document.querySelector("form[hx-post]");
+    if (form) {
+      form.reset();
+    }
+  });
 </script>
 
 {% endblock %}

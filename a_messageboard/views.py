@@ -5,6 +5,8 @@ from loguru import logger
 from .forms import MessageCreateForm
 from django.contrib import messages
 from .tasks import send_email
+from django.template.loader import render_to_string
+from django.http import HttpResponse, JsonResponse
 from django.db.models import Count
 
 def home(request):
@@ -13,7 +15,8 @@ def home(request):
         "messageboards": messageboards,
     }
     return render(request, 'a_messageboard/index.html', context)
-    
+
+
 @login_required
 def messageboard_detail(request, board_id=1):
     messageboard = get_object_or_404(MessageBoard, id=board_id)
@@ -33,8 +36,13 @@ def messageboard_detail(request, board_id=1):
                 send_email.delay(recipient_email=subscriber.email, message=message.body, author=request.user.username)
         else:
             messages.warning(request, 'You must subscribe to post a message on this board.')
-        return redirect('messageboard')
-    
+            
+        if request.headers.get('HX-Request') == 'true':
+            html = render_to_string('a_messageboard/partials/messages.html', {'messageboard': messageboard})
+            return HttpResponse(html)
+
+        return redirect('messageboard_detail', board_id=board_id)
+        
     context = {
         'messageboard': messageboard,
         'form': form,
