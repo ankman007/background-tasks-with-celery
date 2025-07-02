@@ -5,16 +5,17 @@ from loguru import logger
 from .forms import MessageCreateForm
 from django.contrib import messages
 from .tasks import send_email
+from django.db.models import Count
 
 def home(request):
-    messageboards = MessageBoard.objects.all()
+    messageboards = MessageBoard.objects.annotate(subscriber_count=Count('subscribers'))
     context = {
         "messageboards": messageboards,
     }
     return render(request, 'a_messageboard/index.html', context)
     
 @login_required
-def messageboard_view(request, board_id=1):
+def messageboard_detail(request, board_id=1):
     messageboard = get_object_or_404(MessageBoard, id=board_id)
     subscriber_count = messageboard.subscribers.count()
     form = MessageCreateForm(request.POST or None)
@@ -39,11 +40,11 @@ def messageboard_view(request, board_id=1):
         'form': form,
         'subscriber_count': subscriber_count,
     }
-    return render(request, 'a_messageboard/index.html', context)
+    return render(request, 'a_messageboard/messageboard.html', context)
 
 
 @login_required
-def subscribe(request, board_id=1):
+def subscribe(request, board_id):
     messageboard = get_object_or_404(MessageBoard, id=board_id)
 
     if not messageboard.subscribers.filter(pk=request.user.pk).exists():
@@ -51,4 +52,4 @@ def subscribe(request, board_id=1):
     else:
         messageboard.subscribers.remove(request.user)
 
-    return redirect('messageboard')
+    return redirect('messageboard_detail', board_id=board_id)

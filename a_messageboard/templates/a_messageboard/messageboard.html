@@ -71,7 +71,7 @@
           <strong>Description:</strong> {{ messageboard.description }}
         </p>
       </aside>
-<hr class="border-black border-t-2 my-4">
+      <hr class="border-black border-t-2 my-4">
       <div class="mb-12">
         {% if user in messageboard.subscribers.all %}
         <h2 class="text-lg font-semibold mb-2 text-green-700">
@@ -81,7 +81,7 @@
           You’ll receive email updates and newsletters related to this board.
         </p>
         <a
-          href="{% url 'subscribe' %}"
+          href="{% url 'subscribe' messageboard.id %}"
           class="inline-block bg-gray-500 hover:bg-red-600 text-white font-semibold rounded-full py-2 px-5 transition"
         >
           Unsubscribe
@@ -93,7 +93,7 @@
           directly in your inbox.
         </p>
         <a
-          href="{% url 'subscribe' %}"
+          href="{% url 'subscribe' messageboard.id %}"
           class="inline-block bg-black hover:bg-emerald-500 text-white font-semibold rounded-full py-2 px-5 transition"
         >
           Subscribe
