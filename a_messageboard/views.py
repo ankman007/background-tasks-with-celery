@@ -1,13 +1,15 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from .models import MessageBoard
 from loguru import logger
-from .forms import MessageCreateForm
 from django.contrib import messages
-from .tasks import send_email
 from django.template.loader import render_to_string
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Count
+
+from a_messageboard.tasks import send_email
+from a_messageboard.models import MessageBoard
+from a_messageboard.forms import MessageCreateForm
+
 
 def home(request):
     messageboards = MessageBoard.objects.annotate(subscriber_count=Count('subscribers'))
@@ -59,5 +61,4 @@ def subscribe(request, board_id):
         messageboard.subscribers.add(request.user)
     else:
         messageboard.subscribers.remove(request.user)
-
     return redirect('messageboard_detail', board_id=board_id)

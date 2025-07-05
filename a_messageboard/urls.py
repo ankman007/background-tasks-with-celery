@@ -1,5 +1,5 @@
 from django.urls import path
-from a_messageboard.views import *
+from a_messageboard.views import home, messageboard_detail, subscribe
 
 urlpatterns = [
     path('', home, name='home'),
